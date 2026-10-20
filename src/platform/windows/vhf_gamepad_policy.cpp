@@ -89,12 +89,16 @@ namespace platf::vhf_gamepad {
     if (configured_gamepad == "vhf_switch") {
       return vhf_profile_e::switch_pro;
     }
-    if (configured_gamepad == "vhf_steam" && is_steam_controller_client(client_type, client_capabilities)) {
-      return vhf_profile_e::steam_controller;
+    if (configured_gamepad == "vhf_steam") {
+      // Explicit selection wins: some client paths can still report LI_CTYPE_STEAM without
+      // the full SC2026 capability bitset (for example when the dedicated client driver path
+      // is unavailable). In that case, keep the user's explicit Steam profile choice.
+      if (client_type == LI_CTYPE_STEAM || is_steam_controller_client(client_type, client_capabilities)) {
+        return vhf_profile_e::steam_controller;
+      }
+      // Non-Steam arrivals still fall through to their own metadata so vhf_steam does not
+      // force unrelated controllers into a Steam profile.
     }
-    // vhf_steam for anything else falls through to what the controller's own metadata earns:
-    // a virtual Steam Controller fed by a client without the pads, the haptic relay and the
-    // click flags would be a second, half-dead Steam Controller next to the real one.
 
     if (is_steam_controller_client(client_type, client_capabilities)) {
       // A client that identifies a Steam Controller gets the real thing: two pads, grips,
